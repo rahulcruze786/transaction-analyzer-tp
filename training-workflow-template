@@ -1,14 +1,14 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: sap-ai-core-poc-training
+  name: transaction-analyzer-ml-training
   annotations:
-    scenarios.ai.sap.com/description: "POC Training Pipeline"
-    scenarios.ai.sap.com/name: "sap-ai-core-poc"
-    executables.ai.sap.com/description: "Train the POC model"
-    executables.ai.sap.com/name: "poc-training"
+    scenarios.ai.sap.com/description: "transaction analyzer ml training pipeline"
+    scenarios.ai.sap.com/name: "transaction-analyzer-ml"
+    executables.ai.sap.com/description: "Train the classification model"
+    executables.ai.sap.com/name: "classification-training"
   labels:
-    scenarios.ai.sap.com:id: "sap-ai-core-poc"
+    scenarios.ai.sap.com:id: "transaction-analyzer-ml"
     ai.sap.com/version: "1.0.0"
 spec:
   entrypoint: training-pipeline
@@ -23,8 +23,7 @@ spec:
         labels:
           ai.sap.com/resourcePlan: starter
       container:
-        # Replace with the image you build from the training/Dockerfile
-        image: docker.io/your-org/transaction-analyzer-training:latest
+        image: docker.io/rahulcruze786/training-service:v1.3
         workingDir: /app
         command: ["python"]
         args: ["trainer.py"]
