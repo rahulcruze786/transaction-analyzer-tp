@@ -1,0 +1,105 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: transaction-analyzer-ml-training
+  annotations:
+    scenarios.ai.sap.com/description: "transaction analyzer ml training pipeline"
+    scenarios.ai.sap.com/name: "transaction-analyzer-ml"
+    executables.ai.sap.com/description: "Train the classification model"
+    executables.ai.sap.com/name: "classification-training"
+  labels:
+    scenarios.ai.sap.com:id: "transaction-analyzer-ml"
+    ai.sap.com/version: "1.0.0"
+spec:
+  entrypoint: training-pipeline
+  templates:
+    - name: training-pipeline
+      steps:
+        - - name: train
+            template: train-step
+
+    - name: train-step
+      metadata:
+        labels:
+          ai.sap.com/resourcePlan: starter
+      container:
+        image: docker.io/rahulcruze786/training-service:v1.3
+        workingDir: /app
+        command: ["python"]
+        args: ["trainer.py"]
+        env:
+          - name: MODEL_DIR
+            value: "/app/models"
+          - name: S3_BUCKET
+            value: "your-s3-bucket"
+          - name: S3_ENDPOINT
+            value: "s3.amazonaws.com"
+          - name: AWS_ACCESS_KEY_ID
+            value: "REPLACE_ME"
+          - name: AWS_SECRET_ACCESS_KEY
+            value: "REPLACE_ME"
+          - name: S3_PATH_PREFIX
+            value: "ai/transaction-analyzer"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+      outputs:
+        artifacts:
+          - name: model-output
+            globalName: trainedmodels
+            path: /app/models
+            archive:
+              none: {}apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: transaction-analyzer-ml-training
+  annotations:
+    scenarios.ai.sap.com/description: "transaction analyzer ml training pipeline"
+    scenarios.ai.sap.com/name: "transaction-analyzer-ml"
+    executables.ai.sap.com/description: "Train the classification model"
+    executables.ai.sap.com/name: "classification-training"
+  labels:
+    scenarios.ai.sap.com:id: "transaction-analyzer-ml"
+    ai.sap.com/version: "1.0.0"
+spec:
+  entrypoint: training-pipeline
+  templates:
+    - name: training-pipeline
+      steps:
+        - - name: train
+            template: train-step
+
+    - name: train-step
+      metadata:
+        labels:
+          ai.sap.com/resourcePlan: starter
+      container:
+        image: docker.io/rahulcruze786/training-service:v1.3
+        workingDir: /app
+        command: ["python"]
+        args: ["trainer.py"]
+        env:
+          - name: MODEL_DIR
+            value: "/app/models"
+          - name: S3_BUCKET
+            value: "your-s3-bucket"
+          - name: S3_ENDPOINT
+            value: "s3.amazonaws.com"
+          - name: AWS_ACCESS_KEY_ID
+            value: "REPLACE_ME"
+          - name: AWS_SECRET_ACCESS_KEY
+            value: "REPLACE_ME"
+          - name: S3_PATH_PREFIX
+            value: "ai/transaction-analyzer"
+        resources:
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+      outputs:
+        artifacts:
+          - name: model-output
+            globalName: trainedmodels
+            path: /app/models
+            archive:
+              none: {}
