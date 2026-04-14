@@ -1,0 +1,64 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: transaction-analyzer-training
+  annotations:
+    scenarios.ai.sap.com/description: "Transaction analyzer training via Argo (single task)"
+    executables.ai.sap.com/name: "transaction-analyzer-training"
+  labels:
+    scenarios.ai.sap.com/id: "transaction-analyzer"
+    executables.ai.sap.com/id: "transaction-analyzer-training"
+    ai.sap.com/version: "1.0.0"
+spec:
+  entrypoint: train-step
+
+  templates:
+    - name: train-step
+      metadata:
+        labels:
+          ai.sap.com/resourcePlan: starter
+          scenarios.ai.sap.com/id: "transaction-analyzer"
+      container:
+        image: docker.io/rahulcruze786/training-service:v1.2
+        command: ["python", "trainer.py"]
+        env:
+          - name: MODEL_DIR
+            value: "/app/models"
+          - name: S3_BUCKET
+            valueFrom:
+              secretKeyRef:
+                name: s3-transaction-analyzer
+                key: "Bucket"
+          - name: S3_ENDPOINT
+            valueFrom:
+              secretKeyRef:
+                name: s3-transaction-analyzer
+                key: "Endpoint"
+          - name: AWS_DEFAULT_REGION
+            valueFrom:
+              secretKeyRef:
+                name: s3-transaction-analyzer
+                key: "Region"
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: s3-transaction-analyzer
+                key: "AWS Access Key ID"
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-transaction-analyzer
+                key: "AWS Secret Access Key"
+          - name: S3_PATH_PREFIX
+            valueFrom:
+              secretKeyRef:
+                name: s3-transaction-analyzer
+                key: "Path Prefix"
+      # trainer reads data from HDI (no inputs.artifacts)
+      outputs:
+        artifacts:
+          - name: trained-models
+            path: /app/models
+            archive:
+              tgz: {}
+            globalName: transaction-analyzer-trainedmodels
