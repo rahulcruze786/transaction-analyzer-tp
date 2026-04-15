@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: sap-ai-core-poc-training
+  annotations:
+    scenarios.ai.sap.com/description: "POC Training Pipeline"
+    scenarios.ai.sap.com/name: "sap-ai-core-poc"
+    executables.ai.sap.com/description: "Train the POC model"
+    executables.ai.sap.com/name: "poc-training"
+  labels:
+    scenarios.ai.sap.com/id: "sap-ai-core-poc"
+    ai.sap.com/version: "1.0.0"
+spec:
+  entrypoint: training-pipeline
+  templates:
+    - name: training-pipeline
+      steps:
+        - - name: train
+            template: train-step
+
+    - name: train-step
+      metadata:
+        labels:
+          ai.sap.com/resourcePlan: starter
+      container:
+        image: docker.io/jerushan/sap-ai-core-poc:latest
+        command: ["python"]
+        args:
+          - "src/training/train.py"
+        env:
+          - name: RAW_DATA_PATH
+            value: "/app/data/raw"
+          - name: PROCESSED_DATA_PATH
+            value: "/tmp/processed"
+          - name: MODEL_OUTPUT_PATH
+            value: "/tmp/models"
+      inputs:
+        artifacts:
+          - name: input-data
+            path: /app/data/raw        # ← only mount raw data input here
+      outputs:
+        artifacts:
+          - name: model-output
+            globalName: trainedmodels
+            path: /tmp/models          # ← only output models here
+            archive:
+              none: {}
