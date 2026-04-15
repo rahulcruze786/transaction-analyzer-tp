@@ -1,0 +1,48 @@
+apiVersion: ai.sap.com/v1alpha1
+kind: ServingTemplate
+metadata:
+  name: sap-ai-core-poc-serving
+  annotations:
+    scenarios.ai.sap.com/description: "POC Serving Template"
+    scenarios.ai.sap.com/name: "sap-ai-core-poc"
+    executables.ai.sap.com/description: "Serve POC model predictions"
+    executables.ai.sap.com/name: "poc-serving"
+  labels:
+    scenarios.ai.sap.com/id: "sap-ai-core-poc"
+    ai.sap.com/version: "1.0.0"
+spec:
+  inputs:
+    artifacts:
+      - name: trainedmodels
+  template:
+    apiVersion: "serving.kserve.io/v1beta1"
+    metadata:
+      annotations: "{}"
+      labels: "{\"ai.sap.com/resourcePlan\": \"starter\"}"
+    spec: |
+      predictor:
+        minReplicas: 1
+        maxReplicas: 2
+        containers:
+          - name: kserve-container
+            image: docker.io/jerushan/sap-ai-core-poc-serving:latest
+            ports:
+              - containerPort: 8080
+                protocol: TCP
+            command: ["python"]
+            args:
+              - "src/prediction/predict.py"
+            env:
+              - name: STORAGE_URI
+                value: "{{inputs.artifacts.trainedmodels}}"
+              - name: MODEL_PATH
+                value: "/mnt/models/model.pkl"
+              - name: SCALER_PATH
+                value: "/mnt/models/scaler.pkl"
+            resources:
+              requests:
+                cpu: "0.5"
+                memory: "512Mi"
+              limits:
+                cpu: "1"
+                memory: "1Gi"
